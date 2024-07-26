@@ -1,7 +1,9 @@
 const { Category } = require("../models/category");
 const express = require("express");
 const router = express.Router();
+const isAdmin = require("../helpers/isAdmin");
 
+// Get all categories - User & Admin Dashboard
 router.get(`/`, async (req, res) => {
   const categoryList = await Category.find();
 
@@ -11,6 +13,7 @@ router.get(`/`, async (req, res) => {
   res.status(200).send(categoryList);
 });
 
+// Get category details - User & Admin Dashboard
 router.get("/:id", async (req, res) => {
   const category = await Category.findById(req.params.id);
 
@@ -22,7 +25,8 @@ router.get("/:id", async (req, res) => {
   res.status(200).send(category);
 });
 
-router.post(`/`, async (req, res) => {
+// Create category - Admin Dashboard
+router.post(`/`,isAdmin, async (req, res) => {
   let category = new Category({
     name: req.body.name,
     icon: req.body.icon,
@@ -35,7 +39,8 @@ router.post(`/`, async (req, res) => {
   res.send(category);
 });
 
-router.put("/:id", async (req, res) => {
+// Update category - Admin Dashboard
+router.put("/:id",isAdmin, async (req, res) => {
   const category = await Category.findByIdAndUpdate(
     req.params.id,
     {
@@ -51,7 +56,8 @@ router.put("/:id", async (req, res) => {
   res.send(category);
 });
 
-router.delete("/:id", (req, res) => {
+// Delete category - Admin Dashboard
+router.delete("/:id",isAdmin, (req, res) => {
   Category.findByIdAndDelete(req.params.id)
     .then((category) => {
       if (category) {

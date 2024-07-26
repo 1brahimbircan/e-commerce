@@ -3,8 +3,10 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const isAdmin = require("../helpers/isAdmin");
 
-router.get(`/`, async (req, res) => {
+// Get all users - Admin Dashboard
+router.get(`/`, isAdmin ,async (req, res) => {
   const userList = await User.find().select("-passwordHash");
 
   if (!userList) {
@@ -13,6 +15,7 @@ router.get(`/`, async (req, res) => {
   res.status(200).send(userList);
 });
 
+// Get user details - User & Admin Dashboard
 router.get("/:id", async (req, res) => {
   const user = await User.findById(req.params.id).select("-passwordHash");
 
@@ -24,7 +27,8 @@ router.get("/:id", async (req, res) => {
   res.status(200).send(user);
 });
 
-router.post(`/`, async (req, res) => {
+// Create user - Admin Dashboard
+router.post(`/`,isAdmin, async (req, res) => {
   let user = new User({
     name: req.body.name,
     email: req.body.email,
@@ -46,7 +50,8 @@ router.post(`/`, async (req, res) => {
   res.send(user);
 });
 
-router.put('/:id',async (req, res)=> {
+// Update user - Admin Dashboard
+router.put('/:id',isAdmin, async (req, res)=> {
 
   const userExist = await User.findById(req.params.id);
   let newPassword
@@ -79,6 +84,7 @@ router.put('/:id',async (req, res)=> {
   res.send(user);
 })
 
+// User Login
 router.post(`/login`, async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   const secret = process.env.SECRET_KEY;
@@ -103,6 +109,7 @@ router.post(`/login`, async (req, res) => {
   }
 });
 
+// User Register
 router.post('/register', async (req,res)=>{
   let user = new User({
       name: req.body.name,
@@ -124,7 +131,8 @@ router.post('/register', async (req,res)=>{
   res.send(user);
 });
 
-router.delete('/:id', (req, res)=>{
+// Delete user - Admin Dashboard
+router.delete('/:id', isAdmin, (req, res)=>{
   User.findByIdAndRemove(req.params.id).then(user =>{
       if(user) {
           return res.status(200).json({success: true, message: 'the user is deleted!'})
@@ -136,7 +144,8 @@ router.delete('/:id', (req, res)=>{
   })
 })
 
-router.get(`/get/count`, async (req, res) =>{
+// Get user count - Admin Dashboard
+router.get(`/get/count`,isAdmin, async (req, res) =>{
   const userCount = await User.countDocuments({});
   
   if(!userCount) {

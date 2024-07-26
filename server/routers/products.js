@@ -3,7 +3,9 @@ const { Product } = require("../models/product");
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
+const isAdmin = require("../helpers/isAdmin");
 
+// Get all products - User & Admin Dashboard
 router.get(`/`, async (req, res) => {
   //products?categories=2342342,234234
   let filter = {};
@@ -19,6 +21,7 @@ router.get(`/`, async (req, res) => {
   res.send(productList);
 });
 
+// Get product details - User & Admin Dashboard
 router.get(`/:id`, async (req, res) => {
   const product = await Product.findById(req.params.id).populate("category");
 
@@ -28,7 +31,8 @@ router.get(`/:id`, async (req, res) => {
   res.send(product);
 });
 
-router.post(`/`, async (req, res) => {
+// Create product - Admin Dashboard
+router.post(`/`,isAdmin, async (req, res) => {
   const category = await Category.findById(req.body.category);
   if (!category) return res.status(400).send("Invalid Category");
 
@@ -53,7 +57,8 @@ router.post(`/`, async (req, res) => {
   res.send(product);
 });
 
-router.put("/:id", async (req, res) => {
+// Update product - Admin Dashboard
+router.put("/:id",isAdmin, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).send("Invalid Product Id");
   }
@@ -83,7 +88,8 @@ router.put("/:id", async (req, res) => {
   res.send(product);
 });
 
-router.delete("/:id", (req, res) => {
+// Delete product - Admin Dashboard
+router.delete("/:id",isAdmin, (req, res) => {
   Product.findByIdAndDelete(req.params.id)
     .then((product) => {
       if (product) {
@@ -97,6 +103,7 @@ router.delete("/:id", (req, res) => {
     });
 });
 
+// Get product count - User & Admin Dashboard
 router.get(`/get/count`, async (req, res) => {
   const productCount = await Product.countDocuments({});
 
@@ -109,6 +116,7 @@ router.get(`/get/count`, async (req, res) => {
 
 });
 
+// Get featured products - User & Admin Dashboard
 router.get(`/get/featured/:count`, async (req, res) => {
   const count = req.params.count ? req.params.count : 0;
   const products = await Product.find({ isFeatured: true }).limit(+count);
@@ -116,7 +124,6 @@ router.get(`/get/featured/:count`, async (req, res) => {
     res.status(500).json({ success: false });
   }
   res.send(products);
-
 });
 
 module.exports = router;
