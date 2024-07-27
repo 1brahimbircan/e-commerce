@@ -9,6 +9,7 @@ function authJwt() {
   }).unless({
     path: [
       //Token is not required for these paths
+      { url: /\/public\/uploads(.*)/, methods: ["GET", "OPTIONS"] },
       { url: /\/api\/v1\/products(.*)/, methods: ["GET", "OPTIONS"] },
       { url: /\/api\/v1\/categories(.*)/, methods: ["GET", "OPTIONS"] },
       `${api}/users/login`,
