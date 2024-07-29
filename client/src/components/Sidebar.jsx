@@ -66,6 +66,7 @@ const navItems = [
 ];
 
 const Sidebar = ({
+  user,
   drawerWidth,
   isSidebarOpen,
   setIsSidebarOpen,
@@ -163,6 +164,37 @@ const Sidebar = ({
                 );
               })}
             </List>
+          </Box>
+          <Box sx={{ position: "absolute", bottom: "2rem" }}>
+            <Divider />
+            <FlexBetween textTransform="none" gap="1rem" m="1.5rem 2rem 0 3rem">
+              <Box
+                component="img"
+                src={profileImage}
+                alt="profile"
+                borderRadius="50%"
+                width="40px"
+                height="40px"
+                sx={{ objectFit: "cover" }}
+              />
+                <Box textAlign="left">
+                  <Typography
+                    fontWeight="bold"
+                    fontSize="0.9rem"
+                    sx={{ color: theme.palette.secondary[100] }}
+                  >
+                    {user.name}
+                  </Typography>
+                  <Typography
+                    fontSize="0.8rem"
+                    sx={{ color: theme.palette.secondary[200] }}>
+                      {user.isAdmin ? "Admin" : "User"}
+                    </Typography>
+                </Box>
+                <SettingsOutlined 
+                sx = {{ color: theme.palette.secondary[300], fontSize : "25px" }}
+                />
+            </FlexBetween>
           </Box>
         </Drawer>
       )}
