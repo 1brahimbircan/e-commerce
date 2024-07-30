@@ -16,13 +16,17 @@ export const api = createApi({
             return headers;
         },
     }),
-    tagTypes: ['User'],
+    tagTypes: ["User","Products"],
     endpoints: (build) => ({
         getUser: build.query({
             query: (id) => `api/v1/users/${id}`,
             providesTags: ['User'],
         }),
+        getProducts: build.query({
+            query: () => `api/v1/products`,
+            providesTags: ['Products'],
+        }),
     }),
 });
 
-export const { useGetUserQuery } = api;
+export const { useGetUserQuery, useGetProductsQuery } = api;
