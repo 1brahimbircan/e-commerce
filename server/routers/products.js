@@ -160,6 +160,24 @@ router.delete("/:id", isAdmin, (req, res) => {
   Product.findByIdAndDelete(req.params.id)
     .then((product) => {
       if (product) {
+        const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+          // Delete image from the server
+          const imagePath = product.image.replace(basePath, "");
+          fs.unlink(`public/uploads/${imagePath}`, (err) => {
+            if (err) {
+              console.error(`Failed to delete image: ${imagePath}`, err);
+            }
+          });
+          // Delete gallery images from the server
+          const galleryImages = product.images;
+          galleryImages.forEach((image) => {
+            const galleryImagePath = image.replace(basePath, "");
+            fs.unlink(`public/uploads/${galleryImagePath}`, (err) => {
+              if (err) {
+                console.error(`Failed to delete image: ${galleryImagePath}`, err);
+              }
+            });
+          });
         return res
           .status(200)
           .json({ success: true, message: "the product is deleted!" });
@@ -202,42 +220,51 @@ router.put(
   isAdmin,
   uploadOptions.array("images", 5),
   async (req, res) => {
-    // Check if the product id is valid
     const productExist = await Product.findById(req.params.id);
     if (!productExist) return res.status(400).send("Invalid Product Id");
 
+    const imagesToRemove = JSON.parse(req.body.imagesToRemove || "[]");
     const files = req.files;
     let imagesPaths = [];
     const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
 
+    // Filter out images to be removed
+    imagesPaths = productExist.images.filter(
+      (image) => !imagesToRemove.includes(image)
+    );
+
+    // Validate image count
+    if (imagesPaths.length + files.length > 5) {
+      return res.status(400).send("Toplam resim sayısı 5'ten fazla olamaz.");
+    }
+
+    // Save new images
     if (files) {
-      // Delete old images
-      const product = await Product.findById(req.params.id);
-      if (product && product.images.length > 0) {
-        product.images.forEach((image) => {
-          const imagePath = image.replace(basePath, "");
-          fs.unlink(`public/uploads/${imagePath}`, (err) => {
-            if (err) {
-              console.error(`Failed to delete image: ${imagePath}`, err);
-            }
-          });
-        });
-      }
-      // Save new images
       for (const file of files) {
         const fileName = file.originalname.split(" ").join("-").split(".")[0];
         const webpFileName = `${fileName}-${Date.now()}.webp`;
         const filePath = `public/uploads/${webpFileName}`;
 
         await sharp(file.buffer)
-          .resize(800) // İsteğe bağlı olarak boyutlandırma
-          .webp({ lossless: true }) // Kayıpsız sıkıştırma
+          .resize(800)
+          .webp({ lossless: true })
           .toFile(filePath);
 
         imagesPaths.push(`${basePath}${webpFileName}`);
       }
     }
 
+    // Remove deleted images from the server
+    for (const image of imagesToRemove) {
+      const imagePath = image.replace(basePath, "");
+      fs.unlink(`public/uploads/${imagePath}`, (err) => {
+        if (err) {
+          console.error(`Failed to delete image: ${imagePath}`, err);
+        }
+      });
+    }
+
+    // Update product images
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
@@ -247,7 +274,7 @@ router.put(
     );
 
     if (!updatedProduct)
-      return res.status(500).send("the product cannot be updated!");
+      return res.status(500).send("Ürün güncellenemedi!");
 
     res.send(updatedProduct);
   }

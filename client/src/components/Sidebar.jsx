@@ -162,7 +162,7 @@ const Sidebar = ({
                     </ListItemButton>
                   </ListItem>
                 );
-              })}
+              })} 
             </List>
           </Box>
           <Box sx={{ position: "absolute", bottom: "2rem" }}>
